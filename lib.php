@@ -20,10 +20,10 @@ function up1_meta_get_text($courseid, $field, $error=false) {
     if ( substr($field, 0, 3) !== 'up1' ) {
         $field = $prefix . $field;
     }
-    $sql = "SELECT data FROM {custom_info_field} cf "
-         . "JOIN {custom_info_data} cd ON (cf.id = cd.fieldid) "
-         . "WHERE cf.objectname='course' AND cd.objectname='course' AND cf.shortname=? AND cd.objectid=?";
-    $res = $DB->get_field_sql($sql, array($field, $courseid));
+    $sql = "SELECT cd.value FROM {customfield_field} cf "
+         . "JOIN {customfield_data} cd ON (cf.id = cd.fieldid) "
+         . "WHERE cf.shortname=? AND cd.instanceid=?";
+    $res = $DB->get_field_sql($sql, [$field, $courseid]);
     if ( $error && ! $res ) {
         throw new coding_exception('Erreur ! champ "' . $field . '" absent');
         return '';
@@ -76,7 +76,7 @@ function up1_meta_get_list($courseid, $field, $error=false, $separator=' / ', $p
     $res = join($separator, $items);
     if ( $res ) {
         if ($prefix) {
-            $fieldname = $DB->get_field('custom_info_field', 'name', array('shortname' => $field), MUST_EXIST);
+            $fieldname = $DB->get_field('customfield_field', 'name', array('shortname' => $field), MUST_EXIST);
             $res = $fieldname . ' : ' . $res;
         }
         return $res;
@@ -130,7 +130,7 @@ function up1_meta_get_user($courseid, $field, $username=true) {
 }
 
 /**
- * get the id in table custom_info_data for a given (course id, field shortname)
+ * get the id in table customfield_data for a given (course id, field shortname)
  * @global type $DB
  * @param in $courseid
  * @param string $field (shortname)
@@ -143,10 +143,10 @@ function up1_meta_get_id($courseid, $field) {
     if ( substr($field, 0, 3) !== 'up1' ) {
         $field = $prefix . $field;
     }
-    $sql = "SELECT cd.id FROM {custom_info_data} cd "
-         . " JOIN {custom_info_field} cf ON (cd.fieldid = cf.id AND cd.objectname='course' AND cf.objectname='course') "
-         . " WHERE cf.shortname=? AND cd.objectid=?";
-	$id = $DB->get_field_sql($sql, array($field, $courseid), IGNORE_MISSING);
+    $sql = "SELECT cd.id FROM {customfield_data} cd "
+         . " JOIN {customfield_field} cf ON (cd.fieldid = cf.id) "
+         . " WHERE cf.shortname=? AND cd.instanceid=?";
+	$id = $DB->get_field_sql($sql, [$field, $courseid], IGNORE_MISSING);
 
     //echo $sql ."\n -> $id\n";
     return $id;
@@ -154,23 +154,22 @@ function up1_meta_get_id($courseid, $field) {
 
 /**
  *
- * @param string $object = 'course' or 'user'
  * @param array(string) $fields ex. array('up1complement', 'up1diplome', 'up1cycle')
  */
-function up1_meta_gen_sql_query($object, $fields) {
+function up1_meta_gen_sql_query($fields) {
    global $DB;
 
-   $sql = "SELECT shortname, id FROM {custom_info_field} WHERE objectname = ? AND shortname IN ('"
+   $sql = "SELECT shortname, id FROM {customfield_field} WHERE shortname IN ('"
         . implode("' ,'", $fields) . "')" ;
-   $fieldids = $DB->get_records_sql_menu($sql, array($object));
+   $fieldids = $DB->get_records_sql_menu($sql);
 
    $select = "SELECT c.id " ;
    $from = "FROM {course} c ";
    foreach ($fields as $field) {
        $fid = $fieldids[$field];
        $table = "cid" . $fid;
-       $select = $select . ", ${table}.data AS $field ";
-       $from = $from . "\n  JOIN {custom_info_data} AS ${table} "
+       $select = $select . ", ${table}.value AS $field ";
+       $from = $from . "\n  JOIN {customfield_data} AS ${table} "
                     . " ON ( ${table}.fieldid = $fid AND ${table}.objectid = c.id )" ;
    }
    $sql = $select . $from;
@@ -186,41 +185,45 @@ function up1_meta_gen_sql_query($object, $fields) {
  */
 function up1_meta_set_data($courseid, $fieldname, $data) {
     global $DB;
+    
+    $fieldrecord = $DB->get_record('customfield_field', ['shortname' => $fieldname], '*', MUST_EXIST);
+	$fieldc = \core_customfield\field_controller::create($fieldrecord->id);
+    
+    $fielddata = $DB->get_record('customfield_data', ['fieldid' => $fieldrecord->id, 'instanceid' => $courseid]);
+	$datafieldid = $fielddata ? $fielddata->id : 0;
+	if (!$fielddata) {
+		$fielddata = null;
+	}
+	$datac = \core_customfield\data_controller::create($datafieldid, $fielddata, $fieldc);
+	if (!$datac->get('id')) {
+		$datac->set('contextid', context_course::instance($courseid)->id);
+		$datac>set('instanceid', $courseid);
+	}
 
-    $idfield = up1_meta_get_id($courseid, $fieldname);
-    if ( $idfield ) { // records exists
-        $ret = $DB->update_record('custom_info_data', array('id' => $idfield, 'data' => $data));
-        return $ret;
-    } else {
-        $fieldid = $DB->get_field('custom_info_field',
-                'id',
-                array('objectname'=>'course', 'shortname'=>'up1'.$fieldname),
-                MUST_EXIST);
-        $datarecord = new StdClass;
-        $datarecord->objectname = 'course';
-        $datarecord->objectid = $courseid;
-        $datarecord->fieldid = $fieldid;
-        $datarecord->data = $data;
-        $datarecord->dataformat = 0;
-        $dataid = $DB->insert_record('custom_info_data', $datarecord);
-        return $dataid;
-    }
+	$datac->set($datac->datafield(), $data);
+	$datac->set('value', $data);
+	$datac->save();
+
+	if ($fielddata) {
+	return true;
+	} else {
+		return $DB->get_field('customfield_data', 'id', ['fieldid' => $fieldrecord->id, 'instanceid' => $courseid]);
+	}
 }
 
 /**
- * search all objects (users/courses) matching a specific custominfo data
- * @param string $objectname "course" or "user"
+ * search all objects  matching a specific customfield data
  * @param string $shortname, ex. 'up1urlfixe' or 'up1semestre'
  * @param string $needle the searched value
  * @return array(integer $id)
  */
-function up1_meta_get_objects_by_field($objectname, $shortname, $needle) {
+function up1_meta_get_objects_by_field($shortname, $needle) {
     global $DB;
 
-    $sql = "SELECT cid.objectid "
-        . "FROM {custom_info_data} cid "
-        . "JOIN {custom_info_field} cif ON (cid.fieldid = cif.id) "
-        . "WHERE cid.objectname = :object AND cid.data = :data and cif.shortname = :sname ";
-    $objectid = $DB->get_fieldset_sql($sql, ['object' => $objectname, 'sname' => 'up1urlfixe', 'data' => $needle] );
+    $sql = "SELECT cid.instanceid "
+        . "FROM {customfield_data} cid "
+        . "JOIN {customfield_field} cif ON (cid.fieldid = cif.id) "
+        . "WHERE cid.value = :data and cif.shortname = :sname ";
+    $objectid = $DB->get_fieldset_sql($sql, ['sname' => 'up1urlfixe', 'data' => $needle] );
     return $objectid;
 }
