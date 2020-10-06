@@ -191,13 +191,15 @@ function up1_meta_set_data($courseid, $fieldname, $data) {
     
     $fielddata = $DB->get_record('customfield_data', ['fieldid' => $fieldrecord->id, 'instanceid' => $courseid]);
 	$datafieldid = $fielddata ? $fielddata->id : 0;
-	if (!$fielddata) {
-		$fielddata = null;
-	}
-	$datac = \core_customfield\data_controller::create($datafieldid, $fielddata, $fieldc);
+	
+	$datac = \core_customfield\data_controller::create($datafieldid, null, $fieldc);
 	if (!$datac->get('id')) {
 		$datac->set('contextid', context_course::instance($courseid)->id);
 		$datac>set('instanceid', $courseid);
+	}
+
+	if ($fieldc->get('type') == 'date' && $data == '') {
+		$data = $fieldc->get_configdata_property('defaultvalue');
 	}
 
 	$datac->set($datac->datafield(), $data);
