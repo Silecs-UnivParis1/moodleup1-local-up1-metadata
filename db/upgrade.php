@@ -15,11 +15,12 @@ require_once(__DIR__ . '/../insertlib.php');
 require_once(__DIR__ . '/../../roftools/roflib.php');
 require_once(__DIR__ . '/../libupgrade.php');
 
-function xmldb_local_up1_metadata_upgrade($oldversion) {
+function xmldb_local_up1_metadata_upgrade($oldversion)
+{
     global $CFG, $DB;
 
 
-    if ( $oldversion < 2013070300 ) { // on peut faire cette mise à jour inconditionnellement
+    if ($oldversion < 2013070300) { // on peut faire cette mise à jour inconditionnellement
         $metadata = up1_course_metadata();
 
         echo "Création des catégories :<br />\n";
@@ -30,12 +31,12 @@ function xmldb_local_up1_metadata_upgrade($oldversion) {
         insert_metadata_fields($metadata, 'course');
     }
 
-    if ( $oldversion < 2013070301 ) { // initialisation de categoriesbisrof
+    if ($oldversion < 2013070301) { // initialisation de categoriesbisrof
         echo "Initialisation de categoriesbisrof :<br />\n";
         update_categoriesbisrof();
     }
 
-    if ( $oldversion < 2016051101) {
+    if ($oldversion < 2016051101) {
         echo "Initialisation de up1urlfixe.<br />\n";
         add_urlfixe();
     }

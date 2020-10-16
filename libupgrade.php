@@ -10,12 +10,13 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once(__DIR__ . '/insertlib.php');
 
-function add_urlfixe() {
-    $data = array(
-        'Cycle de vie - Informations techniques' => array(
-            'urlfixe' => array('name' => 'Url fixe', 'datatype' => 'text', 'locked' => 0, 'init' => null)
-            )
-        );
+function add_urlfixe()
+{
+    $data = [
+        'Cycle de vie - Informations techniques' => [
+            'urlfixe' => ['name' => 'Url fixe', 'datatype' => 'text', 'locked' => 0, 'init' => null],
+        ],
+    ];
     if (validate_metadata($data)) {
         insert_metadata_fields($data, 'course');
     } else {
@@ -26,18 +27,19 @@ function add_urlfixe() {
 /**
  * Updates the newly created categoriesbisrof metadata when this field has just been created
  */
-function upgrade_categoriesbisrof() {
+function upgrade_categoriesbisrof()
+{
     global $DB;
 
-    $dataid = $DB->get_field('custom_info_field', 'id', array('shortname' => 'up1rofpathid'), MUST_EXIST);
-    $rofpathids = $DB->get_records('custom_info_data', array('fieldid' => $dataid));
+    $dataid = $DB->get_field('custom_info_field', 'id', ['shortname' => 'up1rofpathid'], MUST_EXIST);
+    $rofpathids = $DB->get_records('custom_info_data', ['fieldid' => $dataid]);
 
-    $catbisrofid = $DB->get_field('custom_info_field', 'id', array('shortname' => 'up1categoriesbisrof'), MUST_EXIST);
+    $catbisrofid = $DB->get_field('custom_info_field', 'id', ['shortname' => 'up1categoriesbisrof'], MUST_EXIST);
 
     foreach ($rofpathids as $rofpathid) {
         // echo $rofpathid->objectid ." => ". $rofpathid->data ."\n" ;
         $rofpaths = explode(';', $rofpathid->data);
-        $categoriesbisrof = array();
+        $categoriesbisrof = [];
         if (count($rofpaths) >= 2) { //rattachements ROF secondaires
             echo "course " . $rofpathid->objectid ." => ";
             // echo $rofpathid->data ."\n    " ;
@@ -49,8 +51,10 @@ function upgrade_categoriesbisrof() {
             }
             $data = join(';', $categoriesbisrof);
             echo "up1categoriesbisrof = $data <br />\n";
-            $record = $DB->get_record('custom_info_data',
-                    array('fieldid' => $catbisrofid, 'objectid' => $rofpathid->objectid, 'objectname' => 'course'));
+            $record = $DB->get_record(
+                'custom_info_data',
+                ['fieldid' => $catbisrofid, 'objectid' => $rofpathid->objectid, 'objectname' => 'course']
+            );
             $record->data = $data;
             $DB->update_record('custom_info_data', $record);
         }

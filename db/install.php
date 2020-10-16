@@ -13,7 +13,8 @@ defined('MOODLE_INTERNAL') || die;
 require_once(__DIR__ . '/../datalib.php');
 require_once(__DIR__ . '/../insertlib.php');
 
-function xmldb_local_up1_metadata_install() {
+function xmldb_local_up1_metadata_install()
+{
     global $CFG, $DB;
 
     $metadata = up1_course_metadata();

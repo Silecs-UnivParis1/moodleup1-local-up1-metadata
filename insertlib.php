@@ -11,12 +11,13 @@
  * @param assoc. array $metadata as provided by up1_course_metadata() OR up1_user_metadata()
  * @return boolean true = OK
  */
-function validate_metadata($metadata) {
-    $count = array();
-    $res = TRUE;
+function validate_metadata($metadata)
+{
+    $count = [];
+    $res = true;
 
     // check if a shortname isn't used twice or more (in 2 categories)
-    foreach($metadata as $cat => $fields) {
+    foreach ($metadata as $cat => $fields) {
         foreach ($fields as $shortname => $attributes) {
             if (isset($count[$shortname])) {
                 $count[$shortname]++;
@@ -28,7 +29,7 @@ function validate_metadata($metadata) {
 
     foreach ($count as $shortname => $c) {
         if ($c != 1) {
-            $res = FALSE;
+            $res = false;
             echo "$shortname utilisé $c fois.\n";
         }
     }
@@ -41,14 +42,15 @@ function validate_metadata($metadata) {
  * @param assoc. array $metadata as provided by up1_course_metadata() OR up1_user_metadata()
  * @param string $object = 'course' | 'user'
  */
-function insert_metadata_categories($metadata, $object) {
+function insert_metadata_categories($metadata, $object)
+{
     global $DB;
 
     $sql = "SELECT MAX(sortorder) AS maxi FROM {custom_info_category} WHERE objectname=?";
-    $record = $DB->get_record_sql($sql, array($object));
+    $record = $DB->get_record_sql($sql, [$object]);
     $sortorder = $record->maxi;
     foreach ($metadata as $cat => $drop) {
-        if ( $DB->record_exists('custom_info_category', array('objectname'=>$object, 'name'=>$cat)) ) {
+        if ($DB->record_exists('custom_info_category', ['objectname'=>$object, 'name'=>$cat])) {
             echo "[$cat] already exists.<br />\n";
         } else {
             $sortorder++;
@@ -68,17 +70,18 @@ function insert_metadata_categories($metadata, $object) {
  * @param assoc. array $metadata as provided by up1_course_metadata() OR up1_user_metadata()
  * @param string $object = 'course' | 'user'
  */
-function insert_metadata_fields($metadata, $object) {
+function insert_metadata_fields($metadata, $object)
+{
     global $DB;
     $prefix = 'up1';
     $fieldsnb = 0;
 
     foreach ($metadata as $cat => $fields) {
-        $catdb = $DB->get_record('custom_info_category', array('objectname'=>$object, 'name'=>$cat), 'id', MUST_EXIST);
+        $catdb = $DB->get_record('custom_info_category', ['objectname'=>$object, 'name'=>$cat], 'id', MUST_EXIST);
         if ($catdb->id) {
             $sortorder = 0;
             foreach ($fields as $shortname => $cif_fields) {
-                if ( $DB->record_exists('custom_info_field', array('objectname'=>$object, 'shortname'=>$prefix.$shortname)) ) {
+                if ($DB->record_exists('custom_info_field', ['objectname'=>$object, 'shortname'=>$prefix.$shortname])) {
                     echo "[$shortname] already exists. Keeping it.<br />\n";
                     continue; // next field
                 }
@@ -117,7 +120,7 @@ function insert_metadata_fields($metadata, $object) {
                 }
                 $id = $DB->insert_record('custom_info_field', $record);
                 echo "OK. id=$id\n";
-                if ( ! is_null($cif_fields['init']) ) {
+                if (null !== $cif_fields['init']) {
                     initialize_custom_data($object, $id, $cif_fields['init']);
                 }
             } // $shortname
@@ -132,20 +135,21 @@ function insert_metadata_fields($metadata, $object) {
  * @param assoc. array $metadata as provided by up1_course_metadata() OR up1_user_metadata()
  * @param string $object = 'course' | 'user'
  */
-function delete_metadata_fields($metadata, $object) {
+function delete_metadata_fields($metadata, $object)
+{
     global $DB;
     $prefix = 'up1';
     $fieldsnb = 0;
 
     foreach ($metadata as $cat => $fields) {
-        $catdb = $DB->get_record('custom_info_category', array('objectname'=>$object, 'name'=>$cat), 'id', MUST_EXIST);
+        $catdb = $DB->get_record('custom_info_category', ['objectname'=>$object, 'name'=>$cat], 'id', MUST_EXIST);
         if ($catdb->id) {
             $sortorder = 0;
             foreach ($fields as $shortname => $ofields) {
-                if ( $DB->record_exists('custom_info_field', array('objectname'=>$object, 'shortname'=>$prefix.$shortname)) ) {
+                if ($DB->record_exists('custom_info_field', ['objectname'=>$object, 'shortname'=>$prefix.$shortname])) {
                     echo "$shortname exists. Deleting it.\n";
                     $fieldsnb++;
-                    $DB->delete_records('custom_info_field', array('objectname'=>$object, 'shortname'=>$prefix.$shortname));
+                    $DB->delete_records('custom_info_field', ['objectname'=>$object, 'shortname'=>$prefix.$shortname]);
                 } else {
                     echo "$shortname does NOT exist. No change.\n";
                 }
@@ -156,7 +160,8 @@ function delete_metadata_fields($metadata, $object) {
 }
 
 
-function initialize_custom_data($objectname, $fieldid, $data) {
+function initialize_custom_data($objectname, $fieldid, $data)
+{
     global $DB;
 
     $cnt=0;
