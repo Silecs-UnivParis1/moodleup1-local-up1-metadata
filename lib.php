@@ -220,19 +220,19 @@ function up1_meta_set_data($courseid, $fieldname, $data)
 }
 
 /**
- * search all objects  matching a specific customfield data
+ * search all objects  matching a specific customfield data of type text (charvalue)
  * @param string $shortname, ex. 'up1urlfixe' or 'up1semestre'
  * @param string $needle the searched value
  * @return array(integer $id)
  */
-function up1_meta_get_objects_by_field($shortname, $needle)
+function up1_meta_get_instanceid_by_field_text($shortname, $needle)
 {
     global $DB;
 
-    $sql = "SELECT cid.instanceid "
-        . "FROM {customfield_data} cid "
-        . "JOIN {customfield_field} cif ON (cid.fieldid = cif.id) "
-        . "WHERE cid.value = :data and cif.shortname = :sname ";
-    $objectid = $DB->get_fieldset_sql($sql, ['sname' => 'up1urlfixe', 'data' => $needle]);
+    $sql = "SELECT cd.instanceid "
+        . "FROM {customfield_data} cd "
+        . "JOIN {customfield_field} cf ON (cd.fieldid = cf.id) "
+        . "WHERE cd.value = :charvalue and cf.shortname = :sname ";
+    $objectid = $DB->get_fieldset_sql($sql, ['sname' => $shortname, 'charvalue' => $needle]);
     return $objectid;
 }
