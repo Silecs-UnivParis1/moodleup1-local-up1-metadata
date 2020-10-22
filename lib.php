@@ -175,7 +175,7 @@ function up1_meta_gen_sql_query($fields)
         $table = "cid" . $fid;
         $select = $select . ", ${table}.value AS $field ";
         $from = $from . "\n  JOIN {customfield_data} AS ${table} "
-                    . " ON ( ${table}.fieldid = $fid AND ${table}.objectid = c.id )" ;
+                    . " ON ( ${table}.fieldid = $fid AND ${table}.instanceid = c.id )" ;
     }
     $sql = $select . $from;
     return $sql;
@@ -233,6 +233,5 @@ function up1_meta_get_instanceid_by_field_text($shortname, $needle)
         . "FROM {customfield_data} cd "
         . "JOIN {customfield_field} cf ON (cd.fieldid = cf.id) "
         . "WHERE cd.value = :charvalue and cf.shortname = :sname ";
-    $objectid = $DB->get_fieldset_sql($sql, ['sname' => $shortname, 'charvalue' => $needle]);
-    return $objectid;
+    return $DB->get_fieldset_sql($sql, ['sname' => $shortname, 'charvalue' => $needle]);
 }
