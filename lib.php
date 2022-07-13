@@ -200,7 +200,7 @@ function up1_meta_set_data($courseid, $fieldname, $data)
     $datac = \core_customfield\data_controller::create($datafieldid, null, $fieldc);
     if (!$datac->get('id')) {
         $datac->set('contextid', context_course::instance($courseid)->id);
-        $datac>set('instanceid', $courseid);
+        $datac->set('instanceid', $courseid);
     }
 
     if ($fieldc->get('type') == 'date' && $data == '') {
