@@ -172,9 +172,9 @@ function up1_meta_gen_sql_query($fields)
     foreach ($fields as $field) {
         $fid = $fieldids[$field];
         $table = "cid" . $fid;
-        $select = $select . ", ${table}.value AS $field ";
-        $from = $from . "\n  JOIN {customfield_data} AS ${table} "
-                    . " ON ( ${table}.fieldid = $fid AND ${table}.instanceid = c.id )" ;
+        $select = $select . ", {$table}.value AS $field ";
+        $from = $from . "\n  JOIN {customfield_data} AS {$table} "
+                    . " ON ( {$table}.fieldid = $fid AND {$table}.instanceid = c.id )" ;
     }
     $sql = $select . $from;
     return $sql;
