@@ -95,7 +95,7 @@ function up1_meta_get_list($courseid, $field, $error=false, $separator=' / ', $p
 function up1_meta_get_date($courseid, $field)
 {
     $dtime = up1_meta_get_text($courseid, $field);
-    if ($dtime == 0) {
+    if ($dtime == 0 || $dtime == '') {
         return ['date' => false, 'datetime' => false, 'datefr' => false];
     }
     return  [
