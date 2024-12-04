@@ -14,8 +14,9 @@ require_once($CFG->dirroot.'/local/up1_metadata/lib.php');
 echo up1_meta_get_text(5, 'complement') . "\n";
 echo up1_meta_get_text(5, 'up1complement') . "\n";
 
-echo up1_meta_get_date(5, 'datedemande') . "\n";
-echo up1_meta_get_date(5, 'up1datedemande') . "\n";
+print_r(up1_meta_get_date(5, 'datedemande')) . "\n";
+print_r(up1_meta_get_date(5, 'up1datedemande')) . "\n";
+print_r(up1_meta_get_date(5, 'datearchivage')) . "\n";
 
 print_r(up1_meta_get_user(5, 'demandeurid')) . "\n";
 print_r(up1_meta_get_user(5, 'up1demandeurid')) . "\n";
