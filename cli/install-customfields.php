@@ -18,7 +18,7 @@ ini_set('error_reporting', E_ALL);
 // now get cli options
 list($options, $unrecognized) = cli_get_params(
         ['help' => false, 'verbose' => 1,
-         'run' => false, 'display-code' => false
+         'run' => false, 'display-code' => false, 'display-base' => false,
         ],
     );
 
@@ -31,11 +31,13 @@ $help = <<<EOHELP
 Création des champs personnalisés de cours standard.
 
 Options:
---help                Affiche cette aide
---verbose=N           Verbosité (0 à 3), 1 par défaut, inopérant.
+--help           Affiche cette aide
+--verbose=N      Verbosité (0 à 3), 1 par défaut, inopérant.
 
---run                 Lance la création
---display-code        Affiche la liste des champs définis dans le code
+--run            Lance la création
+--display-code   Affiche la liste des champs définis dans le code
+--display-base   Affiche la liste des champs enregistrés dans la base de données
+
 EOHELP;
 
 if ( ! empty($options['help']) ) { 
@@ -49,6 +51,20 @@ $CFG->debug = DEBUG_NORMAL;
 if ( ! empty($options['run']) ) { 
     $customfields = new customfields($options['verbose']);
     $customfields->update_customfields();
+    echo "OK.\n";
+    return 0;
+}
+
+if ( ! empty($options['display-code']) ) {
+    $customfields = new customfields($options['verbose']);
+    echo $customfields->get_code_fields();
+    echo "OK.\n";
+    return 0;
+}
+
+if ( ! empty($options['display-base']) ) {
+    $customfields = new customfields($options['verbose']);
+    echo $customfields->get_database_fields();
     echo "OK.\n";
     return 0;
 }

@@ -46,7 +46,7 @@ class customfields
         'categoryid' => null,
         'configdata' => '',
         'timecreated' => null,
-        'timemodified' => null,        
+        'timemodified' => null,
     ];
     
     // customfield_field.configdata dépend du type déclaré dans customfield_field.type
@@ -141,16 +141,22 @@ class customfields
     
     public function update_customfields()
     {
+        $n = 0;
         foreach ($this->CustomFields as $categoryname => $fields) {
             echo "$categoryname... \n";
             $catid = $this->insert_or_find_category($categoryname);
             echo $this->diagmessage;
+            foreach ($fields as $fieldname => $fieldcolumns) {
+                $n += (int) $this->insert_or_find_field($fieldname, $fieldcolumns, $catid);
+                echo $this->diagmessage;
+            }
+            echo "$n champs créés.\n\n";
         }
     }
 
     /**
-     * 
      * @global \moodle_database $DB
+     * @return id de la catégorie
      */
     private function insert_or_find_category(string $categoryname): int
     {
@@ -170,9 +176,56 @@ class customfields
         $this->diagmessage = "La catégorie $categoryname a été créée.\n";
         return $DB->insert_record($table, $record, true);
     }
-    
-    private function insert_or_find_field(array $field): int
+
+    /**
+     * @global \moodle_database $DB
+     * @return bool champ créé ?
+     */
+    private function insert_or_find_field(string $fieldname, array $field, int $categoryid): bool
     {
+        global $DB;
+        $table = 'customfield_field';
+        if ($DB->record_exists($table, ['shortname' => $fieldname])) {
+            $this->diagmessage = "Le champ $fieldname existe déjà.\n";
+            return false;
+        }
+        $record = (object)self::TEMPLATE_FIELD;
+        $record->shortname = $fieldname;
+        $record->name = $field['name'];
+        $record->type = $field['type'];
+        $record->description = $field['description'];
+        $record->sortorder = 1 + $DB->get_field_sql('SELECT MAX(sortorder) FROM {' . $table . '}');
+        $record->categoryid = $categoryid;
+        $record->configdata = self::TEMPLATE_CONFIGDATA[$field['type']];
+        $inserttime = time();
+        $record->timecreated = $inserttime;
+        $record->timemodified = $inserttime;
+        $id = $DB->insert_record($table, $record, true);
         
+        $this->diagmessage = sprintf("Le champ %s de type %s a été créé id=%d.\n", $fieldname, $record->type, $id);
+        return true;
+    }
+
+    public function get_code_fields(): string
+    {
+        return print_r($this->CustomFields, true);
+    }
+
+    public function get_database_fields(): string
+    {
+        global $DB;
+        $out = '';
+        $sql = <<<SQL
+        SELECT f.id as fid, c.id as cid, c.name as cname, f.shortname, f.type, f.name as fname
+            FROM mdl_customfield_field f
+            JOIN mdl_customfield_category c on (f.categoryid = c.id)
+            ORDER BY c.sortorder, f.sortorder
+        SQL;
+        $res = $DB->get_records_sql($sql);
+        foreach ($res as $row) {
+            $out .= sprintf("%3d %-45s  %3d %-25s [%-10s] %-50s\n",
+                    $row->cid, $row->cname, $row->fid, $row->shortname, $row->type, $row->fname );
+        }
+        return $out;
     }
 }
