@@ -58,13 +58,11 @@ if ( ! empty($options['run']) ) {
 if ( ! empty($options['display-code']) ) {
     $customfields = new customfields($options['verbose']);
     echo $customfields->get_code_fields();
-    echo "OK.\n";
     return 0;
 }
 
 if ( ! empty($options['display-base']) ) {
     $customfields = new customfields($options['verbose']);
     echo $customfields->get_database_fields();
-    echo "OK.\n";
     return 0;
 }
