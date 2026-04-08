@@ -122,13 +122,14 @@ class customfields
             ],
             'syl_responsables' => [
                 'name' => 'Responsable(s)',
-                'type' => 'textarea',
+                'type' => 'text',
                 'description' => "<p>Responsable(s) du ou des diplômes concernés : à remplir via un champ de recherche à la nouvelle étape Syllabus (1 nom + si possible email)</p>",
             ],
             'syl_contacts' => [
                 'name' => 'Contacts',
                 'type' => 'textarea',
                 'description' => "<p>Contacts (enseignant.es responsables) : A récupérer du statut Responsable EPI (1 nom)</p>",
+                'configdata' => '{"required":"0","uniquevalues":"0","locked":"0","visibility":"2","defaultvalue":"","defaultvalueformat":"2"}',
             ],           
         ], // category
     ];
@@ -196,7 +197,7 @@ class customfields
         $record->description = $field['description'];
         $record->sortorder = 1 + $DB->get_field_sql('SELECT MAX(sortorder) FROM {' . $table . '}');
         $record->categoryid = $categoryid;
-        $record->configdata = self::TEMPLATE_CONFIGDATA[$field['type']];
+        $record->configdata = isset ($field['configdata']) ? $field['configdata'] : self::TEMPLATE_CONFIGDATA[$field['type']];
         $inserttime = time();
         $record->timecreated = $inserttime;
         $record->timemodified = $inserttime;
