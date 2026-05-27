@@ -75,10 +75,15 @@ class customfields
                 'type' => 'text',
                 'description' => "<p>A récupérer du SI.</p>",
             ],
-            'syl_volume' => [
-                'name' => 'Volume horaire',
+            'syl_volumecm' => [
+                'name' => 'Volume horaire CM',
                 'type' => 'text',
-                'description' => "<p>Volume horaire (CM, TD) : à récupérer du SI.</p>",
+                'description' => "<p>Volume horaire CM: à récupérer du SI.</p>",
+            ],
+            'syl_volumetd' => [
+                'name' => 'Volume horaire TD',
+                'type' => 'text',
+                'description' => "<p>Volume horaire TD: à récupérer du SI.</p>",
             ],
             'syl_elpcode' => [
                 'name' => 'Code APOGEE',
