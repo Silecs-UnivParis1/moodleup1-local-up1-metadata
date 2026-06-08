@@ -17,7 +17,7 @@ function up1_meta_get_text($courseid, $field, $error=false)
     global $DB;
 
     $prefix = 'up1';
-    if (substr($field, 0, 3) !== 'up1') {
+    if (substr($field, 0, 3) !== 'up1' && substr($field, 0, 4) != 'syl_') {
         $field = $prefix . $field;
     }
     $sql = "SELECT cd.value FROM {customfield_field} cf "
@@ -143,7 +143,7 @@ function up1_meta_get_id($courseid, $field)
     global $DB;
 
     $prefix = 'up1';
-    if (substr($field, 0, 3) !== 'up1') {
+    if (substr($field, 0, 3) !== 'up1'  && substr($field, 0, 4) != 'syl_') {
         $field = $prefix . $field;
     }
     $sql = "SELECT cd.id FROM {customfield_data} cd "
